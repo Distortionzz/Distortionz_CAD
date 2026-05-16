@@ -1,0 +1,6 @@
+{
+    "version": "1.6.1",
+    "name": "distortionz_cad",
+    "download": "https://github.com/Distortionzz/Distortionz_CAD",
+    "changelog": "v1.6.1 — IMPROVED: live unit blips no longer skip. Previously the client destroyed + recreated every unit blip on each 5s server push (hard teleport). Now blips are persistent per unit (keyed by CID) and glide toward their latest reported position every frame; server push interval is configurable (Config.Dispatch.unitRefreshMs, 5000 → 1500) and units that go off-duty are removed cleanly. v1.6.0 — charges→jail/fine, BOLO auto-alerts, dispatch ops kit, licenses + callsign. v1.5.0 — citizen-linked BOLOs. v1.4.x — BOLOs tab + insert fix. v1.3.0 — Records autofill. v1.2.0 — Search typeahead. v1.1.0 — rank-gated call-log deletion. v1.0.x — initial full MDT/CAD."
+}

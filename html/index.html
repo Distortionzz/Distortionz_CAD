@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Distortionz CAD</title>
+</head>
+<body>
+    <main id="cad" class="hidden">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">D</div>
+                <div>
+                    <p class="eyebrow">Distortionz</p>
+                    <h1>CAD / MDT</h1>
+                </div>
+                <span id="cad-version" class="version"></span>
+            </div>
+
+            <div class="officer-card">
+                <p class="label">Officer</p>
+                <h2 id="off-name">—</h2>
+                <p class="muted">Callsign <span id="off-callsign">—</span></p>
+                <div class="status-row">
+                    <span class="label">Status</span>
+                    <select id="off-status"></select>
+                </div>
+                <div class="status-row">
+                    <input id="cs-input" placeholder="Set callsign" style="width:130px" />
+                    <button class="btn sm" id="cs-set">Set</button>
+                </div>
+                <div class="status-row">
+                    <button class="btn sm ghost" id="op-backup" style="flex:1">Request Backup</button>
+                    <button class="btn sm" id="op-panic" style="flex:1;background:#b91019">PANIC</button>
+                </div>
+            </div>
+
+            <nav class="tabs">
+                <button class="tab active" data-tab="dispatch">Dispatch</button>
+                <button class="tab" data-tab="search">Search</button>
+                <button class="tab" data-tab="records">Records</button>
+                <button class="tab" data-tab="bolo">BOLOs</button>
+                <button class="tab" data-tab="reports">Reports</button>
+            </nav>
+
+            <button id="cad-close" class="close-btn">Close MDT</button>
+        </aside>
+
+        <section class="content">
+            <div id="tab-dispatch" class="tabview active"></div>
+            <div id="tab-search" class="tabview"></div>
+            <div id="tab-records" class="tabview"></div>
+            <div id="tab-bolo" class="tabview"></div>
+            <div id="tab-reports" class="tabview"></div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

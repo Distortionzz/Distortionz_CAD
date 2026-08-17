@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'Distortionz'
 description 'Distortionz CAD - Computer-Aided Dispatch / MDT for Qbox. Citizen & vehicle search, criminal records, warrants, BOLOs, incident reports, live dispatch + unit status. Central hub other scripts feed alerts into.'
-version '1.6.1'
+version '1.7.0'
 repository 'https://github.com/Distortionzz/Distortionz_CAD'
 
 lua54 'yes'

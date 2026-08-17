@@ -3,7 +3,7 @@ Config = {}
 Config.Debug = false
 
 Config.ResourceName   = 'distortionz_cad'
-Config.CurrentVersion = '1.6.1'
+Config.CurrentVersion = '1.7.0'
 
 -- ─── Version checker ────────────────────────────────────────────────
 Config.VersionCheck = {

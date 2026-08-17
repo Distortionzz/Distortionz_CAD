@@ -160,6 +160,42 @@ proxy('panic',           'distortionz_cad:server:panic')
 proxy('backup',          'distortionz_cad:server:backup')
 proxy('setLicense',      'distortionz_cad:server:setLicense')
 proxy('setCallsign',     'distortionz_cad:server:setCallsign')
+proxy('listCameras',     'distortionz_cad:server:listCameras')
+
+-- ─── Camera feed handoff ─────────────────────────────────────────────
+-- distortionz_flock owns the camera props, coords, and the feed render
+-- itself — this resource only hides its own NUI out of the way and hands
+-- off the camera id. No server round trip: it's the same client calling
+-- another resource's export.
+
+RegisterNUICallback('viewCamera', function(payload, cb)
+    local cameraId = payload and payload.data
+
+    if not cameraId or GetResourceState('distortionz_flock') ~= 'started' then
+        cb({ ok = false, reason = 'Camera network offline.' })
+        return
+    end
+
+    -- Defocus is input routing only — the panel is still drawn on top of
+    -- the feed unless we also tell the NUI to hide itself.
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'minimize' })
+
+    local ok = pcall(function()
+        exports['distortionz_flock']:StartFeed(cameraId)
+    end)
+
+    cb({ ok = ok })
+end)
+
+--- Called by distortionz_flock when the officer exits a feed, so the MDT
+--- reappears exactly where they left it and regains mouse/keyboard focus.
+exports('ResumeFromFeed', function()
+    if cadOpen then
+        SendNUIMessage({ action = 'restore' })
+        SetNuiFocus(true, true)
+    end
+end)
 
 -- Panic also available without the MDT open.
 RegisterCommand('panic', function()

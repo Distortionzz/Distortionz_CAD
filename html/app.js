@@ -46,6 +46,8 @@ window.addEventListener('message', e => {
   if (d.action === 'open') { boot(d.data); }
   else if (d.action === 'close') { $('#cad').classList.add('hidden'); }
   else if (d.action === 'dispatch' && d.data) { state.dispatch = d.data; if (curTab === 'dispatch') renderDispatch(); renderUnitsOnly(); }
+  else if (d.action === 'minimize') { $('#cad').classList.add('hidden'); }
+  else if (d.action === 'restore') { $('#cad').classList.remove('hidden'); }
 });
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') doClose(); });
@@ -99,6 +101,7 @@ function switchTab(name) {
   if (name === 'records') loadRecords();
   if (name === 'bolo') loadBolos();
   if (name === 'reports') loadReports();
+  if (name === 'cameras') loadCameras();
 }
 
 /* ── DISPATCH ────────────────────────────────────────── */
@@ -417,6 +420,47 @@ function attachCitizenAutocomplete(input, onPick) {
   }, 220);
   input.addEventListener('input', liveRun);
   input.addEventListener('blur', () => setTimeout(close, 120));
+}
+
+/* ── CAMERAS ─────────────────────────────────────────── */
+function loadCameras() {
+  $('#tab-cameras').innerHTML = `<div class="empty">Loading…</div>`;
+  api('listCameras').then(r => {
+    if (!r || !r.ok) { $('#tab-cameras').innerHTML = '<div class="empty">Failed to reach the camera network.</div>'; return; }
+    if (r.available === false) {
+      $('#tab-cameras').innerHTML = '<div class="empty">Flock is not running on this server.</div>';
+      return;
+    }
+    const cams = r.cameras || [];
+    state.cameras = cams;
+    $('#tab-cameras').innerHTML = `
+      <h3 class="section">Flock Cameras (${cams.length})</h3>
+      ${cams.length ? `<div class="camgrid">${cams.map(camCard).join('')}</div>` : '<div class="empty">No cameras configured.</div>'}`;
+
+    $('#tab-cameras').querySelectorAll('[data-view]').forEach(btn => btn.onclick = () => {
+      btn.disabled = true;
+      api('viewCamera', btn.dataset.view).then(r => {
+        btn.disabled = false;
+        if (!r || !r.ok) toast((r && r.reason) || 'Could not open feed');
+      });
+    });
+    $('#tab-cameras').querySelectorAll('[data-wp]').forEach(btn => btn.onclick = () => {
+      const cam = (state.cameras || []).find(c => c.id === btn.dataset.wp);
+      if (cam && cam.coords) api('waypoint', null, { coords: cam.coords }).then(() => toast('Waypoint set'));
+    });
+  });
+}
+function camCard(c) {
+  return `<div class="camcard ${c.online ? '' : 'offline'}">
+    <div class="row" style="justify-content:space-between">
+      <strong>${esc(c.label)}</strong>
+      <span class="pill ${c.online ? 'on' : ''}">${c.online ? 'ONLINE' : 'OFFLINE'}</span>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn sm grow" data-view="${esc(c.id)}" ${c.online ? '' : 'disabled'}>View Feed</button>
+      <button class="btn sm ghost" data-wp="${esc(c.id)}">Waypoint</button>
+    </div>
+  </div>`;
 }
 
 /* ── REPORTS ─────────────────────────────────────────── */

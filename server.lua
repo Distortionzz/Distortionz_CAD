@@ -697,8 +697,38 @@ lib.callback.register('distortionz_cad:server:listReports', function(source)
     return { ok = true, reports = rows }
 end)
 
+-- ─── Cameras (distortionz_flock integration) ────────────────────────
+-- Thin passthrough. flock owns the camera list, coords, and the feed
+-- itself — CAD just needs officer access to ask for it. flock re-checks
+-- access on its own side too, so a looser gate() here still can't leak
+-- camera data through.
+
+lib.callback.register('distortionz_cad:server:listCameras', function(source)
+    if not gate(source) then return { ok = false } end
+
+    if GetResourceState('distortionz_flock') ~= 'started' then
+        return { ok = true, cameras = {}, available = false }
+    end
+
+    local ok, cams = pcall(function()
+        return exports.distortionz_flock:GetCameras(source)
+    end)
+
+    return { ok = true, cameras = (ok and cams) or {}, available = true }
+end)
+
 -- ─── Cleanup ────────────────────────────────────────────────────────
 
 AddEventHandler('playerDropped', function()
     pushDispatch()
+end)
+
+CreateThread(function()
+    Wait(1000)
+    print(('^5[%s]^7 ^2v%s loaded — charges=%d maxActiveCalls=%d^7'):format(
+        Config.ResourceName,
+        Config.CurrentVersion,
+        #Config.Records.charges,
+        Config.Dispatch.maxActiveCalls
+    ))
 end)

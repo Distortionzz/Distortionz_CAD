@@ -457,6 +457,30 @@ lib.callback.register('distortionz_cad:server:searchCitizens', function(source, 
     return { ok = true, results = results }
 end)
 
+-- ─── Vehicle BOLO lookup ────────────────────────────────────────────
+-- Shared by the manual search below and the CheckVehicleBolo export
+-- distortionz_flock calls automatically on every ALPR read. type='Vehicle'
+-- only — `reference` is free text (plate or citizenid depending on what
+-- the BOLO was actually filed for), so without the type filter a
+-- Person-BOLO's reference could coincidentally match a plate.
+
+local function FindVehicleBolo(plate)
+    plate = tostring(plate or ''):upper():gsub('%s+', '')
+    if plate == '' then return nil end
+
+    local rows = MySQL.query.await(
+        "SELECT id, title, details, officer, created_at FROM distortionz_cad_bolos "
+        .. "WHERE type = 'Vehicle' AND reference = ? AND status = 'active' LIMIT 1",
+        { plate })
+
+    return rows and rows[1] or nil
+end
+
+--- Cross-resource entry point — distortionz_flock calls this on every
+--- plate it reads (not just searches), so a BOLO ping doesn't depend on
+--- an officer manually running the plate through this MDT.
+exports('CheckVehicleBolo', FindVehicleBolo)
+
 lib.callback.register('distortionz_cad:server:searchVehicles', function(source, query)
     if not gate(source) then return { ok = false } end
     query = tostring(query or ''):gsub('%s+', ''):upper()
@@ -472,20 +496,17 @@ lib.callback.register('distortionz_cad:server:searchVehicles', function(source, 
     local results = {}
     for _, r in ipairs(rows) do
         local ci = decodeCharinfo(r.charinfo)
-        local bolo = MySQL.query.await(
-            "SELECT id, title FROM distortionz_cad_bolos WHERE reference = ? AND status = 'active' LIMIT 1",
-            { r.plate })
-        local hasBolo = bolo and bolo[1] ~= nil
+        local bolo = FindVehicleBolo(r.plate)
         results[#results + 1] = {
             plate     = r.plate,
             fakeplate = r.fakeplate,
             model     = r.vehicle,
             citizenid = r.citizenid,
             owner     = ('%s %s'):format(ci.firstname or '', ci.lastname or ''):gsub('^%s+', ''):gsub('%s+$', ''),
-            bolo      = hasBolo and bolo[1].title or nil,
+            bolo      = bolo and bolo.title or nil,
         }
-        if hasBolo then
-            AlertUnits(('⚠ BOLO PLATE RAN — %s: %s'):format(r.plate, bolo[1].title),
+        if bolo then
+            AlertUnits(('⚠ BOLO PLATE RAN — %s: %s'):format(r.plate, bolo.title),
                 'police', source)
         end
     end
@@ -695,26 +716,6 @@ lib.callback.register('distortionz_cad:server:listReports', function(source)
         r.involved = (ok and inv) or {}
     end
     return { ok = true, reports = rows }
-end)
-
--- ─── Cameras (distortionz_flock integration) ────────────────────────
--- Thin passthrough. flock owns the camera list, coords, and the feed
--- itself — CAD just needs officer access to ask for it. flock re-checks
--- access on its own side too, so a looser gate() here still can't leak
--- camera data through.
-
-lib.callback.register('distortionz_cad:server:listCameras', function(source)
-    if not gate(source) then return { ok = false } end
-
-    if GetResourceState('distortionz_flock') ~= 'started' then
-        return { ok = true, cameras = {}, available = false }
-    end
-
-    local ok, cams = pcall(function()
-        return exports.distortionz_flock:GetCameras(source)
-    end)
-
-    return { ok = true, cameras = (ok and cams) or {}, available = true }
 end)
 
 -- ─── Cleanup ────────────────────────────────────────────────────────

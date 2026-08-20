@@ -221,16 +221,6 @@ tr.click:hover { background: var(--red-soft); }
 }
 .check.sel { border-color: var(--red); background: var(--red-soft); }
 
-.camgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-.camcard {
-    background: var(--panel); border: 1px solid var(--line);
-    border-left: 3px solid var(--green);
-    border-radius: 10px; padding: 14px;
-}
-.camcard.offline { border-left-color: var(--red); opacity: 0.72; }
-.camcard button.btn[disabled] { opacity: 0.4; cursor: not-allowed; }
-.camcard button.btn[disabled]:hover { filter: none; }
-
 .toast {
     position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
     background: var(--panel-2); border: 1px solid var(--red);

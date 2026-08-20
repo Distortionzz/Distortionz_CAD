@@ -41,9 +41,13 @@ TriggerEvent('distortionz_cad:server:addCall', { ... })
 
 - `qbx_police`'s `police:server:policeAlert` is **auto-bridged** — no
   wiring needed.
-- `distortionz_scrapper`, `distortionz_speedcam` and
-  `distortionz_weedfarm` feed the hub on their police-alert path (added
-  in their respective versions; no-op if CAD isn't running).
+- `distortionz_scrapper`, `distortionz_flock` and `distortionz_weedfarm`
+  feed the hub on their police-alert path (added in their respective
+  versions; no-op if CAD isn't running).
+- `distortionz_flock` also **queries** CAD, not just pushes calls into it:
+  its `CheckVehicleBolo` export lets flock ping police automatically the
+  moment a BOLO'd plate passes any camera, without an officer needing to
+  run the plate through this MDT manually.
 
 ## Dependencies
 
